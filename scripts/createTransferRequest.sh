@@ -6,13 +6,13 @@ echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 echo -e "----\e[5;32;40mAsset Transfer Request  \e[m"
 echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 
-docker exec cli.Org1 bash -c "peer chaincode invoke -C test -n transferchaincode -v 0 -c '{\"Args\":[\"transferAsset\", \"123\", \"Raj Shimpi\"]}'"
+docker exec cli.Org1 bash -c "peer chaincode invoke -C test -n transferchaincode -v 0 -c '{\"Args\":[\"transferAsset\", \"123\", \"Raj shrimp\"]}'"
 sleep ${FABRIC_START_WAIT}
 
-docker exec cli.Org1 bash -c "peer chaincode invoke -C test -n transferchaincode -v 0 -c '{\"Args\":[\"transferAsset\", \"123\", \"Tiger Shimpi\"]}'"
+docker exec cli.Org1 bash -c "peer chaincode invoke -C test -n transferchaincode -v 0 -c '{\"Args\":[\"transferAsset\", \"123\", \"Tiger shrimp\"]}'"
 sleep ${FABRIC_START_WAIT}
 
-docker exec cli.Org1 bash -c "peer chaincode invoke -C test -n transferchaincode -v 0 -c '{\"Args\":[\"transferAsset\", \"123\", \"Rishi Shimpi\"]}'"
+docker exec cli.Org1 bash -c "peer chaincode invoke -C test -n transferchaincode -v 0 -c '{\"Args\":[\"transferAsset\", \"123\", \"Rishi shrimp\"]}'"
 sleep ${FABRIC_START_WAIT}
 
 echo -e "----\e[5;32;40m Now query the same asset to check Asset Transfer updates  \e[m"
