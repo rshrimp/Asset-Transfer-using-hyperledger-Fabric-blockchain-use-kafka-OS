@@ -1,0 +1,340 @@
+version: '2'
+
+networks:
+  transfer:
+
+services:
+  zookeeper0:
+    container_name: zookeeper0
+    extends:
+      file: kafka.yaml
+      service: zookeeper
+    environment:
+      - ZOO_MY_ID=1
+      - ZOO_SERVERS=server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888
+    networks:
+      - transfer
+
+  zookeeper1:
+    container_name: zookeeper1
+    extends:
+      file: kafka.yaml
+      service: zookeeper
+    environment:
+      - ZOO_MY_ID=2
+      - ZOO_SERVERS=server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888
+    networks:
+      - transfer
+
+  zookeeper2:
+    container_name: zookeeper2
+    extends:
+      file: kafka.yaml
+      service: zookeeper
+    environment:
+      - ZOO_MY_ID=3
+      - ZOO_SERVERS=server.1=zookeeper0:2888:3888 server.2=zookeeper1:2888:3888 server.3=zookeeper2:2888:3888
+    networks:
+      - transfer
+
+  kafka0:
+    container_name: kafka0
+    extends:
+      file: kafka.yaml
+      service: kafka
+    environment:
+      - KAFKA_BROKER_ID=0
+      - KAFKA_MIN_INSYNC_REPLICAS=2
+      - KAFKA_DEFAULT_REPLICATION_FACTOR=3
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper0:2181,zookeeper1:2181,zookeeper2:2181
+    depends_on:
+      - zookeeper0
+      - zookeeper1
+      - zookeeper2
+    ports:
+      - 9092:9092
+    networks:
+      - transfer
+
+  kafka1:
+    container_name: kafka1
+    extends:
+      file: kafka.yaml
+      service: kafka
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_DEFAULT_REPLICATION_FACTOR=3
+      - KAFKA_MIN_INSYNC_REPLICAS=2
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper0:2181,zookeeper1:2181,zookeeper2:2181
+    depends_on:
+      - zookeeper0
+      - zookeeper1
+      - zookeeper2
+    ports:
+      - 10092:9092
+    networks:
+      - transfer
+
+  kafka2:
+    container_name: kafka2
+    extends:
+      file: kafka.yaml
+      service: kafka
+    environment:
+      - KAFKA_BROKER_ID=2
+      - KAFKA_DEFAULT_REPLICATION_FACTOR=3
+      - KAFKA_MIN_INSYNC_REPLICAS=2
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper0:2181,zookeeper1:2181,zookeeper2:2181
+    depends_on:
+      - zookeeper0
+      - zookeeper1
+      - zookeeper2
+    ports:
+      - 11092:9092
+    networks:
+      - transfer
+
+  kafka3:
+    container_name: kafka3
+    extends:
+      file: kafka.yaml
+      service: kafka
+    environment:
+      - KAFKA_BROKER_ID=3
+      - KAFKA_DEFAULT_REPLICATION_FACTOR=3
+      - KAFKA_MIN_INSYNC_REPLICAS=2
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper0:2181,zookeeper1:2181,zookeeper2:2181
+    depends_on:
+      - zookeeper0
+      - zookeeper1
+      - zookeeper2
+    ports:
+      - 12092:9092
+    networks:
+      - transfer
+
+  orderer0.transfer.com:
+    container_name: orderer0.transfer.com
+    extends:
+      file: orderer.yaml
+      service: orderer
+    volumes:
+      - ./crypto-config/ordererOrganizations/transfer.com/orderers/orderer0.transfer.com/msp:/var/hyperledger/orderer/msp
+    depends_on:
+      - zookeeper0
+      - zookeeper1
+      - zookeeper2
+      - kafka0
+      - kafka1
+      - kafka2
+      - kafka3
+    networks:
+      - transfer
+
+  orderer1.transfer.com:
+    container_name: orderer1.transfer.com
+    extends:
+      file: orderer.yaml
+      service: orderer
+    volumes:
+      - ./crypto-config/ordererOrganizations/transfer.com/orderers/orderer1.transfer.com/msp:/var/hyperledger/orderer/msp
+    depends_on:
+      - zookeeper0
+      - zookeeper1
+      - zookeeper2
+      - kafka0
+      - kafka1
+      - kafka2
+      - kafka3
+    networks:
+      - transfer
+
+  orderer2.transfer.com:
+    container_name: orderer2.transfer.com
+    extends:
+      file: orderer.yaml
+      service: orderer
+    volumes:
+      - ./crypto-config/ordererOrganizations/transfer.com/orderers/orderer2.transfer.com/msp:/var/hyperledger/orderer/msp
+    depends_on:
+      - zookeeper0
+      - zookeeper1
+      - zookeeper2
+      - kafka0
+      - kafka1
+      - kafka2
+      - kafka3
+    networks:
+      - transfer
+
+  peer0.Org1.com:
+    container_name: peer0.Org1.com
+    extends:
+      file: ./peer.yaml
+      service: peer
+    environment:
+      - CORE_PEER_ID=peer0.Org1.com
+      - CORE_PEER_ADDRESS=peer0.Org1.com:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/peer/
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.Org1.com:7051
+    volumes:
+      - ./crypto-config/peerOrganizations/Org1.com/peers/peer0.Org1.com/msp:/etc/hyperledger/msp/peer
+    ports:
+      - 7051:7051
+      - 7053:7053
+    depends_on:
+      - orderer0.transfer.com
+      - orderer1.transfer.com
+      - orderer2.transfer.com
+    networks:
+      - transfer
+
+  peer1.Org1.com:
+    container_name: peer1.Org1.com
+    extends:
+      file: ./peer.yaml
+      service: peer
+    environment:
+      - CORE_PEER_ID=peer1.Org1.com
+      - CORE_PEER_ADDRESS=peer1.Org1.com:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/peer/
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.Org1.com:7051
+    volumes:
+      - ./crypto-config/peerOrganizations/Org1.com/peers/peer1.Org1.com/msp:/etc/hyperledger/msp/peer
+    ports:
+      - 8051:7051
+      - 8053:7053
+    depends_on:
+      - orderer0.transfer.com
+      - orderer1.transfer.com
+      - orderer2.transfer.com
+    networks:
+      - transfer
+
+
+  peer0.Org2.com:
+    container_name: peer0.Org2.com
+    extends:
+      file: ./peer.yaml
+      service: peer
+    environment:
+      - CORE_PEER_ID=peer0.Org2.com
+      - CORE_PEER_ADDRESS=peer0.Org2.com:7051
+      - CORE_PEER_LOCALMSPID=Org2MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/peer/
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.Org2.com:7051
+    volumes:
+      - ./crypto-config/peerOrganizations/Org2.com/peers/peer0.Org2.com/msp:/etc/hyperledger/msp/peer
+    ports:
+      - 9051:7051
+      - 9053:7053
+    depends_on:
+      - orderer0.transfer.com
+      - orderer1.transfer.com
+      - orderer2.transfer.com
+    networks:
+      - transfer
+
+  peer1.Org2.com:
+    container_name: peer1.Org2.com
+    extends:
+      file: ./peer.yaml
+      service: peer
+    environment:
+      - CORE_PEER_ID=peer1.Org2.com
+      - CORE_PEER_ADDRESS=peer1.Org2.com:7051
+      - CORE_PEER_LOCALMSPID=Org2MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/peer/
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer1.Org2.com:7051
+    volumes:
+      - ./crypto-config/peerOrganizations/Org2.com/peers/peer1.Org2.com/msp:/etc/hyperledger/msp/peer
+    ports:
+      - 10051:7051
+      - 10053:7053
+    depends_on:
+      - orderer0.transfer.com
+      - orderer1.transfer.com
+      - orderer2.transfer.com
+    networks:
+      - transfer
+
+
+  cli.Org1:
+    extends:
+      file: ./cli.yaml
+      service: cli
+    container_name: cli.Org1
+    environment:
+      - CORE_PEER_ID=cli.Org1.com
+      - CORE_PEER_ADDRESS=peer0.Org1.com:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@Org1.com/msp
+    volumes:
+      - ./crypto-config/peerOrganizations/Org1.com:/etc/hyperledger/msp
+    depends_on:
+      - peer0.Org1.com
+    networks:
+      - transfer
+
+  cli.Org2:
+    extends:
+      file: ./cli.yaml
+      service: cli
+    container_name: cli.Org2
+    environment:
+      - CORE_PEER_ID=cli.Org2.com
+      - CORE_PEER_ADDRESS=peer0.Org2.com:7051
+      - CORE_PEER_LOCALMSPID=Org2MSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@Org2.com/msp
+    volumes:
+      - ./crypto-config/peerOrganizations/Org2.com:/etc/hyperledger/msp
+    depends_on:
+      - peer0.Org2.com
+    networks:
+      - transfer
+
+  ca.Org1:
+    image: hyperledger/fabric-ca
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server-config
+      - FABRIC_CA_SERVER_CA_NAME=ca.Org1
+    ports:
+      - "11051:7054"
+    command: sh -c 'fabric-ca-server start -b admin:adminpw'
+    volumes:
+      - ./crypto-config/peerOrganizations/Org1.com/ca/root/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca.Org1
+    networks:
+      - transfer
+
+  ca.Org2:
+    image: hyperledger/fabric-ca
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server-config
+      - FABRIC_CA_SERVER_CA_NAME=ca.Org2
+    ports:
+      - "12051:7054"
+    command: sh -c 'fabric-ca-server start -b admin:adminpw'
+    volumes:
+      - ./crypto-config/peerOrganizations/Org1.com/ca/root/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca.Org2
+    networks:
+      - transfer
+
+
+  client.Org1:
+    tty: true
+    image: hyperledger/fabric-ca
+    container_name: client.Org1
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-client
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+    volumes:
+      - ./crypto-config/peerOrganizations/Org1.com/users/:/etc/hyperledger/ fabric-ca-client
+    depends_on:
+      - ca.Org1
+    command: sh -c 'sleep 5;fabric-ca-client enroll -u http://admin:adminpw@ca.Org1:7054;sleep 10000'
+    networks:
+      - transfer
